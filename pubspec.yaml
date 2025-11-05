@@ -1,0 +1,45 @@
+name: flutter_application_geo_f
+description: "A new Flutter project."
+# The following line prevents the package from being accidentally published to
+# pub.dev using `flutter pub publish`. This is preferred for private packages.
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.9.2 <4.0.0' # Aseguramos compatibilidad con el SDK 3.x
+
+# Dependencies specify other packages that your package needs in order to work.
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The following adds the Cupertino Icons font to your application.
+  cupertino_icons: ^1.0.8
+
+  # ==============================================================
+  # 💡 DEPENDENCIAS AÑADIDAS PARA LA COMUNICACIÓN CON LA API
+  # ==============================================================
+  http: ^1.2.1               # Cliente HTTP para las peticiones a la API
+  shared_preferences: ^2.2.3 # Almacenamiento local del token JWT
+  # provider: ^6.1.2         # (Opcional) Para manejo de estado, si lo requieres más adelante
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
