@@ -1,46 +1,53 @@
-// lib/services/api_service.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  // 🚨 Usando la IP local proporcionada y el puerto 5000 de tu API Flask
-  static const String _baseUrl = "http://100.68.144.119:5000"; 
+  static const String _baseUrl = "http://100.99.89.55:5000";
   static const String _tokenKey = "jwt_token";
+  static const String _roleKey = "user_role";
 
-  /// Obtiene el token JWT almacenado localmente.
+  // ==========================================================
+  // TOKEN & SESIÓN
+  // ==========================================================
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_tokenKey);
   }
 
-  /// Guarda el token JWT después de un login exitoso.
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
-  /// Borra el token (Logout local).
-  Future<void> _deleteToken() async {
+  Future<void> _saveRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_roleKey, role);
+  }
+
+  Future<void> _deleteSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_roleKey);
   }
 
-  /// Verifica si hay un token almacenado (usuario autenticado).
+  Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_roleKey);
+  }
+
   Future<bool> isAuthenticated() async {
-    return await _getToken() != null;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey) != null;
   }
 
-  // ------------------------------------------------------------------
-  //  MÉTODOS DE LA API
-  // ------------------------------------------------------------------
-
-  /// Petición de Login (POST a /user-auth/login)
+  // ==========================================================
+  // AUTENTICACIÓN
+  // ==========================================================
   Future<Map<String, dynamic>> login(String correo, String password) async {
     final url = Uri.parse('$_baseUrl/user-auth/login');
-    
+
     try {
       final response = await http.post(
         url,
@@ -48,35 +55,40 @@ class ApiService {
         body: jsonEncode({'correo': correo, 'password': password}),
       );
 
-      final responseBody = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Éxito: Guardar token y devolver datos del usuario
-        await _saveToken(responseBody['token']);
+        final token = data['token'];
+        final user = User.fromJson(data['usuario']);
+
+        await _saveToken(token);
+        await _saveRole(user.rol);
+
         return {
           'success': true,
-          'user': User.fromJson(responseBody['usuario'])
+          'user': user,
+          'role': user.rol,
         };
       } else {
-        // Error de la API (ej: 401, 404, 400)
         return {
           'success': false,
-          'message': responseBody['mensaje'] ?? 'Error de autenticación'
+          'message': data['mensaje'] ?? 'Error de autenticación',
         };
       }
     } catch (e) {
-      // Error de red (ej: IP incorrecta, API no corriendo, puerto bloqueado)
       return {
         'success': false,
-        'message': 'Error de conexión: No se pudo conectar con la API en $_baseUrl. Asegúrate que Flask esté corriendo con host="0.0.0.0".'
+        'message':
+            'Error de conexión: asegúrate de que Flask esté corriendo en $_baseUrl',
       };
     }
   }
 
-  /// Petición de Registro (POST a /user-auth/register)
+  // ==========================================================
+  // REGISTRO DE USUARIO (con validación y corrección de rol)
+  // ==========================================================
   Future<Map<String, dynamic>> register(Map<String, String> userData) async {
     final url = Uri.parse('$_baseUrl/user-auth/register');
-    
     try {
       final response = await http.post(
         url,
@@ -84,79 +96,303 @@ class ApiService {
         body: jsonEncode(userData),
       );
 
-      final responseBody = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 201) {
+        // ✅ Registro exitoso
+        final cedula = userData['cedula'];
+        final rolEnviado = userData['rol'];
+
+        // Obtener el usuario recién creado
+        final userResponse = await getUserByCedula(cedula!);
+        if (userResponse['success'] == true) {
+          final usuario = userResponse['user'] as User;
+
+          // Si el rol real no coincide, lo actualizamos
+          if (usuario.rol != rolEnviado) {
+            print("⚠️ Rol corregido automáticamente: ${usuario.rol}");
+            await updateUser(cedula, {"rol": usuario.rol});
+          }
+        }
+
         return {
           'success': true,
-          'message': responseBody['mensaje'] ?? 'Registro exitoso'
+          'message': data['mensaje'] ?? 'Registro exitoso',
         };
       } else {
-        // Error de la API (ej: 400, 409)
         return {
           'success': false,
-          'message': responseBody['mensaje'] ?? 'Error de registro'
+          'message': data['mensaje'] ?? 'Error de registro',
         };
       }
     } catch (e) {
-      // Error de red
       return {
         'success': false,
-        'message': 'Error de conexión: No se pudo conectar con la API en $_baseUrl. Revisa la red.'
+        'message':
+            'Error de conexión con el servidor. Revisa la red o el puerto 5000.',
       };
     }
   }
 
-  /// Petición para obtener perfil de usuario (GET a /user/perfil)
+  // ==========================================================
+  // PERFIL DE USUARIO
+  // ==========================================================
   Future<Map<String, dynamic>> getProfile() async {
     final token = await _getToken();
     if (token == null) {
-      return {'success': false, 'message': 'No hay token almacenado'};
+      return {'success': false, 'message': 'No hay sesión activa'};
     }
 
     final url = Uri.parse('$_baseUrl/user/perfil');
-    
     try {
-      final response = await http.get(
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token'
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'user': User.fromJson(data['usuario'])};
+      } else if (response.statusCode == 401) {
+        await _deleteSession();
+        return {'success': false, 'message': 'Sesión expirada'};
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Error al obtener perfil'
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error de conexión. No se pudo obtener el perfil.',
+      };
+    }
+  }
+
+  Future<void> logout() async => await _deleteSession();
+
+  // ==========================================================
+  // ADMINISTRADOR - GESTIÓN DE USUARIOS
+  // ==========================================================
+  Future<Map<String, dynamic>> getAllUsers() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/admin/users');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final List<User> users = (data['usuarios'] as List)
+            .map((u) => User.fromJson(u))
+            .toList();
+        return {'success': true, 'users': users};
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Error al obtener usuarios'
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error al conectar con la API de usuarios administrativos',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getUserByCedula(String cedula) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/admin/user/$cedula');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'user': User.fromJson(data['usuario'])};
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Usuario no encontrado'
+        };
+      }
+    } catch (e) {
+      return {
+        'success': false,
+        'message': 'Error de conexión al consultar usuario',
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> updateUser(
+      String cedula, Map<String, dynamic> updates) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/admin/user/edit/$cedula');
+
+    try {
+      final response = await http.put(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // Enviar el token en el header
+          'Authorization': 'Bearer $token',
         },
+        body: jsonEncode(updates),
       );
 
-      final responseBody = jsonDecode(response.body);
+      final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
         return {
           'success': true,
-          'user': User.fromJson(responseBody['usuario'])
-        };
-      } else if (response.statusCode == 401 || response.statusCode == 404) {
-        // Token expirado o inválido, forzar logout
-        await _deleteToken(); 
-        return {
-          'success': false,
-          'message': responseBody['mensaje'] ?? 'Sesión expirada o token inválido'
+          'user': User.fromJson(data['usuario']),
+          'message': data['mensaje'],
         };
       } else {
-        // Otros errores del servidor
         return {
           'success': false,
-          'message': responseBody['mensaje'] ?? 'Error al obtener perfil'
+          'message': data['mensaje'] ?? 'Error al actualizar usuario'
         };
       }
     } catch (e) {
-      // Error de red
+      return {'success': false, 'message': 'Error de conexión al editar usuario'};
+    }
+  }
+
+  Future<Map<String, dynamic>> toggleUserStatus(
+      String cedula, bool activar) async {
+    final token = await _getToken();
+    final endpoint = activar ? 'recover' : 'delete';
+    final url = Uri.parse('$_baseUrl/admin/user/$endpoint/$cedula');
+
+    try {
+      final response = activar
+          ? await http.put(url, headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token'
+            })
+          : await http.delete(url, headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token'
+            });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['mensaje']};
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Error al cambiar estado'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión con la API'};
+    }
+  }
+
+  Future<List<String>> getRoles() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/admin/roles');
+
+    try {
+      final response = await http.get(url, headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<String>.from(data['roles']);
+      } else {
+        return [];
+      }
+    } catch (_) {
+      return [];
+    }
+  }
+
+  // ==========================================================
+  // 🔥 ELIMINACIÓN DEFINITIVA
+  // ==========================================================
+  Future<Map<String, dynamic>> deleteUserPermanent(String cedula) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/admin/user/hard-delete/$cedula');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['mensaje'] ?? 'Usuario eliminado definitivamente'
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Error al eliminar usuario'
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión con la API'};
+    }
+  }
+    // ==========================================================
+  // ✏️ EDITAR USUARIO (alias flexible para updateUser)
+  // ==========================================================
+  Future<Map<String, dynamic>> editUser(String cedula, Map<String, dynamic> updates) async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/user-auth/edit/$cedula');
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(updates),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        print("✅ Rol actualizado correctamente en backend");
+        return {
+          'success': true,
+          'message': data['mensaje'] ?? 'Usuario editado correctamente',
+          'user': data.containsKey('usuario') ? User.fromJson(data['usuario']) : null,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['mensaje'] ?? 'Error al editar usuario',
+        };
+      }
+    } catch (e) {
       return {
         'success': false,
-        'message': 'Error de conexión al obtener el perfil. Revisa la red.'
+        'message': 'Error de conexión al editar usuario: $e',
       };
     }
   }
 
-  /// Petición de Logout (solo borra el token localmente)
-  Future<void> logout() async {
-    await _deleteToken();
-  }
 }

@@ -19,9 +19,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
 
-  // Tipos de documento para el Dropdown
   final List<String> _documentTypes = ['CC', 'TI', 'CE', 'PA', 'RC'];
-  String? _selectedDocumentType = 'CC'; // Valor inicial por defecto
+  String? _selectedDocumentType = 'CC';
 
   @override
   void dispose() {
@@ -37,7 +36,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : Theme.of(context).colorScheme.primary,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -52,7 +54,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final userData = {
       'cedula': _cedulaController.text.trim(),
       'nombre': _nombreController.text.trim(),
-      // Usamos el valor seleccionado del Dropdown
       'tipo_documento': _selectedDocumentType ?? '',
       'telefono': _telefonoController.text.trim(),
       'correo': _correoController.text.trim(),
@@ -64,7 +65,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result['success'] == true) {
       _showSnackbar("Registro exitoso. Inicia sesión.", isError: false);
       if (mounted) {
-        // Navega a Login, eliminando la pantalla de registro.
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
@@ -78,24 +78,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  // Widget para el formulario de registro responsive
+  // 🎨 Formulario adaptado a tema oscuro elegante
   Widget _buildRegisterForm(double maxWidth) {
     final double formWidth = maxWidth > 600 ? 500 : maxWidth * 0.9;
-    
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(28.0),
         width: formWidth,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: maxWidth > 600 ? [
-            const BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              offset: Offset(0, 5),
+          color: colorScheme.surface.withOpacity(0.95),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
-          ] : null,
+          ],
+          border: Border.all(color: Colors.white12),
         ),
         child: Form(
           key: _formKey,
@@ -106,87 +108,108 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text(
                 "Crear Cuenta",
                 style: TextStyle(
-                  fontSize: maxWidth > 600 ? 32 : 28, // Ajuste de tamaño
+                  fontSize: maxWidth > 600 ? 32 : 28,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
+                  color: colorScheme.primary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
+
               // --- Campos del Formulario ---
-              TextFormField(
+              _buildField(
                 controller: _cedulaController,
-                decoration: const InputDecoration(labelText: 'Cédula', border: OutlineInputBorder(), prefixIcon: Icon(Icons.credit_card)),
-                keyboardType: TextInputType.number,
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                label: 'Cédula',
+                icon: Icons.credit_card,
+                keyboard: TextInputType.number,
               ),
               const SizedBox(height: 15),
-              TextFormField(
+
+              _buildField(
                 controller: _nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre Completo', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person)),
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+                label: 'Nombre Completo',
+                icon: Icons.person,
               ),
               const SizedBox(height: 15),
-              // Dropdown para Tipo Documento
+
               DropdownButtonFormField<String>(
                 value: _selectedDocumentType,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Tipo Documento',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.description),
+                  prefixIcon: const Icon(Icons.description, color: Colors.white70),
+                  filled: true,
+                  fillColor: Colors.white10,
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.white30),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: colorScheme.primary),
+                  ),
                 ),
+                dropdownColor: colorScheme.surface,
                 items: _documentTypes.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value),
+                    child: Text(value, style: const TextStyle(color: Colors.white70)),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedDocumentType = newValue;
-                  });
+                  setState(() => _selectedDocumentType = newValue);
                 },
-                validator: (value) => value == null ? 'Selecciona un tipo de documento' : null,
+                validator: (value) =>
+                    value == null ? 'Selecciona un tipo de documento' : null,
               ),
               const SizedBox(height: 15),
-              TextFormField(
+
+              _buildField(
                 controller: _telefonoController,
-                // Nota: Este campo es obligatorio según la validación en el backend de Flask (user_auth.py).
-                decoration: const InputDecoration(labelText: 'Teléfono', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone)),
-                keyboardType: TextInputType.phone,
-                validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null, 
+                label: 'Teléfono',
+                icon: Icons.phone,
+                keyboard: TextInputType.phone,
               ),
               const SizedBox(height: 15),
-              TextFormField(
+
+              _buildField(
                 controller: _correoController,
-                decoration: const InputDecoration(labelText: 'Correo Electrónico', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => value!.isEmpty || !value.contains('@') ? 'Correo inválido' : null,
+                label: 'Correo Electrónico',
+                icon: Icons.email,
+                keyboard: TextInputType.emailAddress,
               ),
               const SizedBox(height: 15),
-              TextFormField(
+
+              _buildField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Contraseña', border: OutlineInputBorder(), prefixIcon: Icon(Icons.lock)),
-                obscureText: true,
-                validator: (value) => value!.length < 6 ? 'Mínimo 6 caracteres' : null,
+                label: 'Contraseña',
+                icon: Icons.lock,
+                obscure: true,
               ),
-              // --- Fin de Campos del Formulario ---
+              // --- Fin Campos ---
+
               const SizedBox(height: 30),
+
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
                       onPressed: _handleRegister,
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 15),
-                        textStyle: const TextStyle(fontSize: 18),
-                        // Borde redondeado para consistencia visual
-                        shape: RoundedRectangleBorder( 
-                          borderRadius: BorderRadius.circular(8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       child: const Text('REGISTRAR'),
                     ),
               const SizedBox(height: 10),
+
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
@@ -194,7 +217,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
                 },
                 style: TextButton.styleFrom(
-                  foregroundColor: Theme.of(context).primaryColor, // Estilo para destacar
+                  foregroundColor: colorScheme.secondary,
+                  textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 child: const Text("¿Ya tienes cuenta? Inicia sesión"),
               ),
@@ -205,18 +229,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  // 🎨 Campo reutilizable con estilo oscuro
+  Widget _buildField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscure = false,
+    TextInputType? keyboard,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboard,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white70),
+        prefixIcon: Icon(icon, color: Colors.white70),
+        filled: true,
+        fillColor: Colors.white10,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.white24),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+        ),
+      ),
+      validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.background,
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(vertical: 40),
+            padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 16),
             child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-              ),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
               child: _buildRegisterForm(constraints.maxWidth),
             ),
           );
