@@ -14,22 +14,76 @@ class FincaDetailScreen extends StatefulWidget {
 class _FincaDetailScreenState extends State<FincaDetailScreen> {
   final FincaService _fincaService = FincaService();
   Map<String, dynamic>? finca;
+  List<dynamic> agronomos = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFincaDetails();
+    _loadData();
   }
 
-  Future<void> _loadFincaDetails() async {
-    final result = await _fincaService.getFincaDetails(widget.idFinca);
+  // Carga finca + lista de agrónomos
+  Future<void> _loadData() async {
+    final fincaResult = await _fincaService.getFincaDetails(widget.idFinca);
+    final agronomosList = await _fincaService.getAllAgronomos();
+
     if (mounted) {
       setState(() {
-        finca = result['success'] ? result['data'] : null;
+        finca = fincaResult['success'] ? fincaResult['data'] : null;
+        agronomos = agronomosList;
         isLoading = false;
       });
     }
+  }
+
+  // Busca el nombre del agrónomo según su cédula/id
+  String _getAgronomoNombre(String? cedula) {
+    if (cedula == null || cedula.isEmpty) return "—";
+    final match = agronomos.firstWhere(
+      (a) => a['cedula'].toString() == cedula.toString(),
+      orElse: () => {},
+    );
+    if (match.isEmpty) return "No encontrado";
+    return match['nombre'] ?? "Sin nombre";
+  }
+
+  // Widget para mostrar la imagen o el placeholder
+  Widget _buildFincaImage() {
+    final imageUrl = finca!['url_imagen'];
+
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        height: 200,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.black45,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(
+          Icons.image_outlined,
+          color: Colors.white38,
+          size: 100,
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.network(
+        imageUrl,
+        height: 200,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Container(
+          height: 200,
+          color: Colors.black45,
+          alignment: Alignment.center,
+          child: const Icon(Icons.image_not_supported,
+              color: Colors.white38, size: 100),
+        ),
+      ),
+    );
   }
 
   @override
@@ -55,36 +109,22 @@ class _FincaDetailScreenState extends State<FincaDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      if (finca!['url_imagen'] != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            finca!['url_imagen'],
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.white38,
-                              size: 100,
-                            ),
-                          ),
-                        )
-                      else
-                        const Icon(Icons.image_outlined,
-                            color: Colors.white38, size: 100),
+                      _buildFincaImage(),
                       const SizedBox(height: 20),
 
-                      // Información general
                       _buildInfoRow("Código", finca!['codigoFinca']),
                       _buildInfoRow("Abreviatura", finca!['abreviaturaFinca']),
                       _buildInfoRow("Nombre", finca!['nombreFinca']),
                       _buildInfoRow("Dirección", finca!['direccionFinca']),
-                      _buildInfoRow("Agrónomo Encargado",
-                          finca!['agronomoEncargado_id']),
+
+                      // 👨‍🌾 Mostrar el nombre del agrónomo en lugar de la cédula
+                      _buildInfoRow(
+                        "Agrónomo Encargado",
+                        _getAgronomoNombre(finca!['agronomoEncargado_id']),
+                      ),
+
                       const Divider(color: Colors.white24, height: 40),
 
-                      // Estructura descendiente
                       Text(
                         "Estructura de la Finca",
                         style: TextStyle(
@@ -94,22 +134,14 @@ class _FincaDetailScreenState extends State<FincaDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      _buildInfoRow(
-                        "Áreas",
-                        "${finca!['estructura_descendiente']['total_areas']}",
-                      ),
-                      _buildInfoRow(
-                        "Bloques",
-                        "${finca!['estructura_descendiente']['total_bloques']}",
-                      ),
-                      _buildInfoRow(
-                        "Naves",
-                        "${finca!['estructura_descendiente']['total_naves']}",
-                      ),
-                      _buildInfoRow(
-                        "Camas",
-                        "${finca!['estructura_descendiente']['total_camas']}",
-                      ),
+                      _buildInfoRow("Áreas",
+                          "${finca!['estructura_descendiente']['total_areas']}"),
+                      _buildInfoRow("Bloques",
+                          "${finca!['estructura_descendiente']['total_bloques']}"),
+                      _buildInfoRow("Naves",
+                          "${finca!['estructura_descendiente']['total_naves']}"),
+                      _buildInfoRow("Camas",
+                          "${finca!['estructura_descendiente']['total_camas']}"),
                     ],
                   ),
                 ),

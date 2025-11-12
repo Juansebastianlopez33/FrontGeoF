@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class FincaService {
-  static const String _baseUrl = "http://100.99.89.55:5000"; // URL del backend
+  static const String _baseUrl = "http://100.64.64.95:5000"; // URL del backend
   static const String _tokenKey = "jwt_token"; // Clave del token guardado
 
   // ==========================================================
@@ -15,14 +15,13 @@ class FincaService {
     return prefs.getString(_tokenKey);
   }
 
-
   // ==========================================================
   // 🌱 CREAR FINCA
   // ==========================================================
   Future<Map<String, dynamic>> createFinca(
-      Map<String, String> data, [
-        File? imagen,
-      ]) async {
+    Map<String, String> data, [
+    File? imagen,
+  ]) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/geo-admin/fincas');
 
@@ -61,9 +60,13 @@ class FincaService {
   // 📋 LISTAR FINCAS
   // ==========================================================
   Future<List<dynamic>> getAllFincas() async {
+    final token = await _getToken();
     final url = Uri.parse('$_baseUrl/geo-admin/fincas');
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -78,9 +81,13 @@ class FincaService {
   // 🔍 OBTENER DETALLES DE UNA FINCA
   // ==========================================================
   Future<Map<String, dynamic>> getFincaDetails(int idFinca) async {
+    final token = await _getToken();
     final url = Uri.parse('$_baseUrl/geo-admin/fincas/$idFinca');
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
         return {'success': true, 'data': data};
@@ -96,10 +103,10 @@ class FincaService {
   // ✏️ ACTUALIZAR FINCA
   // ==========================================================
   Future<Map<String, dynamic>> updateFinca(
-      int idFinca,
-      Map<String, String> data, [
-        File? imagen,
-      ]) async {
+    int idFinca,
+    Map<String, String> data, [
+    File? imagen,
+  ]) async {
     final token = await _getToken();
     final url = Uri.parse('$_baseUrl/geo-admin/fincas/$idFinca');
 
@@ -167,9 +174,61 @@ class FincaService {
   }
 
   // ==========================================================
+  // 🧑‍🌾 LISTAR TODOS LOS AGRÓNOMOS
+  // ==========================================================
+  Future<List<dynamic>> getAllAgronomos() async {
+    final token = await _getToken();
+    final url = Uri.parse('$_baseUrl/geo-admin/usuarios/agronomos');
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['agronomos'] ?? [];
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ==========================================================
+  // 🔍 BUSCAR AGRÓNOMO POR CÉDULA O NOMBRE
+  // ==========================================================
+  Future<Map<String, dynamic>> searchAgronomo({String? cedula, String? nombre}) async {
+    final token = await _getToken();
+    final queryParams = <String, String>{};
+    if (cedula != null && cedula.isNotEmpty) queryParams['cedula'] = cedula;
+    if (nombre != null && nombre.isNotEmpty) queryParams['nombre'] = nombre;
+
+    final url = Uri.parse('$_baseUrl/geo-admin/usuarios/agronomos/search')
+        .replace(queryParameters: queryParams);
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      } else {
+        return {'success': false, 'message': data['mensaje'] ?? 'Agrónomo no encontrado'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
+    }
+  }
+
+  // ==========================================================
   // 🖼️ OBTENER URL DE IMAGEN
   // ==========================================================
   String getImageUrl(String relativePath) {
-    return '$_baseUrl/geo-admin/uploads/$relativePath';
+    final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    return '$_baseUrl/geo-admin/uploads/$cleanPath';
   }
 }

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
 class ApiService {
-  static const String _baseUrl = "http://100.99.89.55:5000";
+  static const String _baseUrl = "http://100.64.64.95:5000";
   static const String _tokenKey = "jwt_token";
   static const String _roleKey = "user_role";
 

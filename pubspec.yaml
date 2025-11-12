@@ -28,6 +28,7 @@ dependencies:
   mime: ^2.0.0
   http_parser: ^4.1.2
   image_picker: ^1.2.0
+  dropdown_search: ^6.0.2
   # provider: ^6.1.2         # (Opcional) Para manejo de estado, si lo requieres más adelante
 
 dev_dependencies:
