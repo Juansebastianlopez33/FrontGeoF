@@ -7,9 +7,10 @@ class ApiService {
   static const String _baseUrl = "http://100.64.64.95:5000";
   static const String _tokenKey = "jwt_token";
   static const String _roleKey = "user_role";
+  static const String _nameKey = "user_name"; // 🔥 1. NUEVA CLAVE PARA EL NOMBRE
 
   // ==========================================================
-  // TOKEN & SESIÓN
+  // TOKEN & SESIÓN & CACHE DE DATOS
   // ==========================================================
   Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
@@ -26,15 +27,28 @@ class ApiService {
     await prefs.setString(_roleKey, role);
   }
 
+  // 🔥 2. NUEVO MÉTODO: Guardar el nombre
+  Future<void> _saveName(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_nameKey, name);
+  }
+
   Future<void> _deleteSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_roleKey);
+    await prefs.remove(_nameKey); // 🔥 4. LIMPIAR NOMBRE al cerrar sesión
   }
 
   Future<String?> getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_roleKey);
+  }
+  
+  // 🔥 3. NUEVO MÉTODO: Obtener el nombre
+  Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_nameKey);
   }
 
   Future<bool> isAuthenticated() async {
@@ -63,6 +77,7 @@ class ApiService {
 
         await _saveToken(token);
         await _saveRole(user.rol);
+        await _saveName(user.nombre); // 🔥 5. GUARDAR EL NOMBRE DEL USUARIO
 
         return {
           'success': true,
@@ -84,6 +99,8 @@ class ApiService {
     }
   }
 
+  // ... (El resto de tus métodos: register, getProfile, getAllUsers, etc. se mantienen igual)
+  
   // ==========================================================
   // REGISTRO DE USUARIO (con validación y corrección de rol)
   // ==========================================================
@@ -153,7 +170,12 @@ class ApiService {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        return {'success': true, 'user': User.fromJson(data['usuario'])};
+        final user = User.fromJson(data['usuario']);
+        // OPCIONAL: Si el perfil se actualiza, también podrías guardar el rol y el nombre aquí
+        // await _saveRole(user.rol); 
+        // await _saveName(user.nombre);
+
+        return {'success': true, 'user': user};
       } else if (response.statusCode == 401) {
         await _deleteSession();
         return {'success': false, 'message': 'Sesión expirada'};

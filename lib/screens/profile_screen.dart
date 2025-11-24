@@ -3,6 +3,8 @@ import '../models/user_model.dart';
 import '../services/api_service.dart';
 import 'home/home_screen.dart';
 import 'admin_dashboard_screen.dart';
+// 💡 Importar el tema global para consistencia
+import 'home/theme/dark_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +18,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   final ApiService _apiService = ApiService();
 
+  // 🎯 DEFINICIÓN DE COLORES MATES (Mantenemos la estética específica del usuario)
+  // Usaremos un color de acento azul/teal oscuro y desaturado
+  static const Color _mateAccent = Color(0xFF5E8B9E); // Teal/Azul Mate
+  static const Color _mateAdminColor = Color(0xFF8B4A4A); // Rojo Mate para Admin
+  static const Color _mateLogoutColor = Color(0xFF9E4B4B); // Rojo Mate para Logout
+  // Nota: Eliminamos _buttonBgColor y usamos GeoFloraTheme.card
+
   @override
   void initState() {
     super.initState();
@@ -28,7 +37,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         content: Text(message),
         backgroundColor: isError
             ? Colors.redAccent.shade200
-            : Colors.greenAccent.shade400,
+            : _mateAccent, // Usar color mate para éxito
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -76,47 +85,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // 🎯 AJUSTE VISUAL: Avatar sin neón ni gradientes brillantes
   Widget _buildAvatar(double avatarRadius) {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.greenAccent.withOpacity(0.6),
-            Colors.tealAccent.withOpacity(0.3),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.greenAccent.withOpacity(0.3),
-            spreadRadius: 3,
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        // Eliminamos el gradient neón, usamos un borde sutil con el color mate
+        border: Border.all(color: _mateAccent.withOpacity(0.5), width: 2),
       ),
       child: CircleAvatar(
         radius: avatarRadius,
-        backgroundColor: Colors.black.withOpacity(0.6),
+        // ✅ Usar color de tarjeta del tema para el fondo del avatar
+        backgroundColor: GeoFloraTheme.card.withOpacity(0.6), 
         child: Icon(
           Icons.account_circle,
           size: avatarRadius * 1.5,
-          color: Colors.greenAccent.shade400,
+          color: _mateAccent, // Usar el color mate
         ),
       ),
     );
   }
 
+  // 🎯 AJUSTE VISUAL: Fila de detalles con íconos y textos sobrios
   Widget _buildDetailRow(String label, String value, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.greenAccent.shade400, size: 24),
+          // Ícono con color mate
+          Icon(icon, color: _mateAccent, size: 24),
           const SizedBox(width: 15),
           Expanded(
             child: Column(
@@ -126,16 +125,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   label,
                   style: TextStyle(
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade400,
+                    color: Colors.grey.shade500, // Texto de label más apagado
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(
                   value,
                   style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17, // Ligeramente más grande
+                    fontWeight: FontWeight.w600, // No tan bold
                     color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -150,7 +149,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildProfileDetails(double maxWidth) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
+      // Usar el color mate para el indicador de carga
+      return const Center(child: CircularProgressIndicator(color: _mateAccent));
     }
 
     if (_user == null) {
@@ -169,8 +169,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: _fetchProfile,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent.shade400,
-                foregroundColor: Colors.black,
+                backgroundColor: _mateAccent, // Botón de recarga con color mate
+                foregroundColor: Colors.white,
               ),
               child: const Text('Recargar Perfil'),
             ),
@@ -187,11 +187,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         width: contentWidth,
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          // ✅ Aplicar GeoFloraTheme.card como fondo sólido para la tarjeta
+          color: GeoFloraTheme.card, 
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Colors.white10),
           boxShadow: [
@@ -214,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _user!.nombre,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 22,
+                      fontSize: 24, // Ligeramente más grande para más impacto
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -222,16 +219,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 5),
                   Text(
                     'Documento: ${_user!.tipoDocumento} ${_user!.cedula}',
-                    style: const TextStyle(fontSize: 15, color: Colors.white70),
+                    // ✅ Usar el color de texto apagado del tema
+                    style: TextStyle(fontSize: 16, color: GeoFloraTheme.textLight), 
                   ),
                   const SizedBox(height: 12),
                   if (_user!.rol.isNotEmpty)
                     Container(
                       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
                       decoration: BoxDecoration(
+                        // 🎯 Color de Rol Mate (manteniendo el custom del usuario)
                         color: _user!.rol.toLowerCase() == 'admin'
-                            ? Colors.redAccent.shade400
-                            : Colors.teal.shade600,
+                            ? _mateAdminColor.withOpacity(0.7) // Rojo mate admin
+                            : _mateAccent.withOpacity(0.7), // Teal mate user
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Text(
@@ -243,47 +242,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                  const Divider(height: 40, color: Colors.white24),
+                  const Divider(height: 40, color: Colors.white12, thickness: 1.5), // Divisor más sutil
                 ],
               ),
             ),
             _buildDetailRow("Correo Electrónico", _user!.correo, Icons.email_outlined),
             if ((_user!.telefono ?? '').isNotEmpty)
               _buildDetailRow("Teléfono", _user!.telefono!, Icons.phone_outlined),
-
-            const SizedBox(height: 30),
+            // Puedes agregar más detalles aquí si los hay
+            
+            const SizedBox(height: 40), // Más espacio antes de los botones
+            
+            // 🎯 AJUSTE VISUAL: Botón Home Mate (Borde y Texto con Color Mate)
             ElevatedButton.icon(
-              icon: const Icon(Icons.home_outlined),
-              label: const Text("Ir a la Página Principal"),
+              icon: Icon(Icons.home_outlined, color: _mateAccent),
+              label: Text("Ir a la Página Principal", style: TextStyle(color: _mateAccent)),
               onPressed: _handleGoToHome,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent.shade400,
-                foregroundColor: Colors.black,
+                // ✅ Usar color de tarjeta del tema para el fondo del botón
+                backgroundColor: GeoFloraTheme.card, 
                 minimumSize: const Size.fromHeight(50),
+                side: BorderSide(color: _mateAccent.withOpacity(0.5)), // Borde sutil
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
             ),
-            const SizedBox(height: 10),
+            
+            const SizedBox(height: 15), // Más espacio
+            
+            // 🎯 AJUSTE VISUAL: Botón Admin Mate
             if (_user!.rol.toLowerCase() == 'admin')
               ElevatedButton.icon(
-                icon: const Icon(Icons.admin_panel_settings_outlined),
-                label: const Text("Ir al Panel de Administración"),
+                icon: Icon(Icons.admin_panel_settings_outlined, color: _mateAdminColor),
+                label: Text("Ir al Panel de Administración", style: TextStyle(color: _mateAdminColor)),
                 onPressed: _handleGoToAdmin,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.tealAccent.shade700,
-                  foregroundColor: Colors.black,
+                  // ✅ Usar color de tarjeta del tema para el fondo del botón
+                  backgroundColor: GeoFloraTheme.card, 
                   minimumSize: const Size.fromHeight(50),
+                  side: BorderSide(color: _mateAdminColor.withOpacity(0.5)), // Borde sutil
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
-            const SizedBox(height: 10),
+              
+            const SizedBox(height: 15), // Más espacio
+            
+            // 🎯 AJUSTE VISUAL: Botón Cerrar Sesión Mate
             ElevatedButton.icon(
-              icon: const Icon(Icons.logout),
-              label: const Text("Cerrar Sesión"),
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text("Cerrar Sesión", style: TextStyle(color: Colors.white)),
               onPressed: _handleLogout,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent.shade400,
-                foregroundColor: Colors.white,
+                backgroundColor: _mateLogoutColor, // Rojo mate
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -297,15 +306,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      // ✅ Aplicar el color de fondo global del tema
+      backgroundColor: GeoFloraTheme.background,
       appBar: AppBar(
         title: const Text("Perfil de Usuario"),
         backgroundColor: Colors.black,
-        foregroundColor: Colors.greenAccent.shade400,
+        // 🎯 AJUSTE VISUAL: Foreground color mate (manteniendo el custom del usuario)
+        foregroundColor: _mateAccent,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            color: Colors.greenAccent.shade400,
+            // 🎯 AJUSTE VISUAL: Color de ícono de recarga mate
+            color: _mateAccent,
             onPressed: _fetchProfile,
             tooltip: "Recargar Perfil",
           ),

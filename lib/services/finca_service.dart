@@ -7,6 +7,9 @@ class FincaService {
   static const String _baseUrl = "http://100.64.64.95:5000"; // URL del backend
   static const String _tokenKey = "jwt_token"; // Clave del token guardado
 
+  // Constante para la ruta base de fincas
+  static const String _fincaBaseRoute = "/geo-admin/fincas";
+
   // ==========================================================
   // 🔒 OBTENER TOKEN
   // ==========================================================
@@ -23,7 +26,7 @@ class FincaService {
     File? imagen,
   ]) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/geo-admin/fincas');
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute');
 
     try {
       final request = http.MultipartRequest('POST', url)
@@ -55,13 +58,45 @@ class FincaService {
       return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
+  
+  // ==========================================================
+  // 📦 NUEVO: LISTAR FINCAS POR ESTADO (Habilitadas o Inhabilitadas)
+  // ==========================================================
+  Future<List<dynamic>> getFincasByStatus({required bool isActive}) async {
+    final token = await _getToken();
+    
+    // Determinar el sufijo de la ruta: /habilitadas o /inhabilitadas
+    final String statusSuffix = isActive ? '/habilitadas' : '/inhabilitadas';
+    
+    // Construir la URL completa: /geo-admin/fincas/habilitadas o /inhabilitadas
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute$statusSuffix'); 
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body); 
+      } else {
+        // En caso de error, devolvemos una lista vacía.
+        print("Error fetching fincas by status (Status: ${response.statusCode}): ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      print("Error de conexión al obtener fincas por estado: $e");
+      return [];
+    }
+  }
+
 
   // ==========================================================
-  // 📋 LISTAR FINCAS
+  // 📋 LISTAR FINCAS (TODAS - Mantenido por compatibilidad)
   // ==========================================================
   Future<List<dynamic>> getAllFincas() async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/geo-admin/fincas');
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute'); // Usa la ruta base sin sufijo (lista todas)
     try {
       final response = await http.get(
         url,
@@ -82,7 +117,7 @@ class FincaService {
   // ==========================================================
   Future<Map<String, dynamic>> getFincaDetails(int idFinca) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/geo-admin/fincas/$idFinca');
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute/$idFinca');
     try {
       final response = await http.get(
         url,
@@ -108,7 +143,7 @@ class FincaService {
     File? imagen,
   ]) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/geo-admin/fincas/$idFinca');
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute/$idFinca');
 
     try {
       final request = http.MultipartRequest('PUT', url)
@@ -146,7 +181,7 @@ class FincaService {
   // ==========================================================
   Future<Map<String, dynamic>> toggleFincaStatus(int idFinca, bool isActive) async {
     final token = await _getToken();
-    final url = Uri.parse('$_baseUrl/geo-admin/fincas/$idFinca/estado');
+    final url = Uri.parse('$_baseUrl$_fincaBaseRoute/$idFinca/estado');
 
     try {
       final response = await http.patch(
@@ -227,8 +262,19 @@ class FincaService {
   // ==========================================================
   // 🖼️ OBTENER URL DE IMAGEN
   // ==========================================================
-  String getImageUrl(String relativePath) {
-    final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
-    return '$_baseUrl/geo-admin/uploads/$cleanPath';
+  String getImageUrl(String relativeOrCompleteUrl) {
+    // Si Flask ya devolvió una URL completa (http://...) en el campo 'url_imagen',
+    // simplemente la devolvemos sin modificar.
+    if (relativeOrCompleteUrl.startsWith('http://') || relativeOrCompleteUrl.startsWith('https://')) {
+        return relativeOrCompleteUrl;
+    }
+    
+    // Si solo devolvió la ruta relativa (ej: 'fincas/1/main.jpg'), construimos la URL completa.
+    final cleanPath = relativeOrCompleteUrl.startsWith('/') 
+        ? relativeOrCompleteUrl.substring(1) 
+        : relativeOrCompleteUrl;
+        
+    // La URL de acceso debería ser:
+    return '$_baseUrl/uploads/$cleanPath';
   }
 }

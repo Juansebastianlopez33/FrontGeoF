@@ -13,31 +13,31 @@ class FincaListScreen extends StatefulWidget {
 class _FincaListScreenState extends State<FincaListScreen> {
   final FincaService _fincaService = FincaService();
   late Future<List<dynamic>> _fincasFuture;
-  String _filtro = 'todas'; // todas | activas | inactivas
+  
+  // Se elimina el estado '_filtro' ya que ahora solo se verán las habilitadas.
+  // String _filtro = 'todas'; 
   String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _fincasFuture = _fincaService.getAllFincas();
+    // 🎯 Se llama directamente al servicio para obtener solo las fincas habilitadas.
+    _fincasFuture = _fincaService.getFincasByStatus(isActive: true);
   }
 
   Future<void> _recargarFincas() async {
     setState(() {
-      _fincasFuture = _fincaService.getAllFincas();
+      // 🎯 Al recargar, volvemos a obtener solo las fincas habilitadas.
+      _fincasFuture = _fincaService.getFincasByStatus(isActive: true);
     });
   }
 
-  // Filtrar por estado y búsqueda
+  // Filtrar solo por búsqueda (el filtrado por estado lo hace ahora el backend).
   List<dynamic> _filtrarFincas(List<dynamic> fincas) {
     List<dynamic> filtradas = fincas;
 
-    if (_filtro == 'activas') {
-      filtradas = filtradas.where((f) => f['is_active'] == true).toList();
-    } else if (_filtro == 'inactivas') {
-      filtradas = filtradas.where((f) => f['is_active'] == false).toList();
-    }
-
+    // Se elimina el filtrado local por estado, ya que el API solo devuelve activas.
+    
     if (_query.isNotEmpty) {
       final q = _query.toLowerCase();
       filtradas = filtradas.where((f) {
@@ -53,32 +53,19 @@ class _FincaListScreenState extends State<FincaListScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: GeoFloraTheme.background,
       appBar: AppBar(
-        title: const Text("Listado de Fincas"),
+        // ✏️ Título más específico
+        title: const Text("Fincas Habilitadas"),
         backgroundColor: Colors.black.withOpacity(0.85),
-        actions: [
-          PopupMenuButton<String>(
-            color: Colors.grey[900],
-            icon: const Icon(Icons.filter_alt, color: Colors.white),
-            onSelected: (value) => setState(() => _filtro = value),
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'todas',
-                child: Text("📋 Todas", style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem(
-                value: 'activas',
-                child: Text("🟢 Habilitadas", style: TextStyle(color: Colors.white)),
-              ),
-              const PopupMenuItem(
-                value: 'inactivas',
-                child: Text("🔴 Inhabilitadas", style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ],
+        // ❌ Se elimina el menú de filtro por estado
+        // actions: [
+        //   PopupMenuButton<String>(
+        //     ...
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
@@ -123,15 +110,18 @@ class _FincaListScreenState extends State<FincaListScreen> {
                     child: Text(
                       "Error al cargar fincas: ${snapshot.error}",
                       style: const TextStyle(color: Colors.redAccent),
+                      textAlign: TextAlign.center,
                     ),
                   );
                 }
 
+                // Las fincas recibidas ya son solo las habilitadas
                 if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(
                     child: Text(
-                      "No hay fincas registradas.",
+                      "No hay fincas habilitadas registradas.",
                       style: TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
                     ),
                   );
                 }
@@ -141,8 +131,9 @@ class _FincaListScreenState extends State<FincaListScreen> {
                 if (fincasFiltradas.isEmpty) {
                   return Center(
                     child: Text(
-                      "No hay resultados para \"$_query\".",
+                      "No hay resultados para \"$_query\" entre las fincas habilitadas.",
                       style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
                     ),
                   );
                 }
@@ -156,7 +147,12 @@ class _FincaListScreenState extends State<FincaListScreen> {
                     itemCount: fincasFiltradas.length,
                     itemBuilder: (context, index) {
                       final finca = fincasFiltradas[index];
-                      final bool isActive = finca['is_active'] ?? true;
+                      // Ya que la lista es solo de activas, 'isActive' siempre será true
+                      final bool isActive = finca['is_active'] ?? true; 
+                      
+                      final String abbrev = 
+                          "Abr: ${finca['abreviaturaFinca'] ?? '-'}";
+
 
                       return Card(
                         color: Colors.grey[900],
@@ -165,54 +161,50 @@ class _FincaListScreenState extends State<FincaListScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: ListTile(
+                          // Icono indicando estado
                           leading: Icon(
-                            Icons.landscape,
-                            color: isActive ? Colors.greenAccent : Colors.redAccent,
+                            Icons.location_on, 
+                            color: isActive ? Colors.white : Colors.redAccent, 
                           ),
+                          
+                          // ➡️ Nombre de la Finca Resaltado en Blanco
                           title: Text(
                             finca['nombreFinca'] ?? 'Sin nombre',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
+                            style: const TextStyle( 
+                              color: Colors.white, 
+                              fontSize: 17,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Código: ${finca['codigoFinca'] ?? '-'}",
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              Text(
-                                "Abreviatura: ${finca['abreviaturaFinca'] ?? '-'}",
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                              Text(
-                                "Dirección: ${finca['direccionFinca'] ?? '-'}",
-                                style: const TextStyle(color: Colors.white70),
-                              ),
-                            ],
+                          
+                          // ➡️ Subtítulo compacto con solo la abreviatura
+                          subtitle: Text(
+                            abbrev,
+                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          
+                          // El indicador de estado (ahora fijo en Habilitada)
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
-                              color: isActive
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.red.withOpacity(0.2),
+                              color: Colors.green.withOpacity(0.2), 
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: isActive ? Colors.greenAccent : Colors.redAccent,
+                                color: Colors.white, // Borde blanco para activo
                               ),
                             ),
-                            child: Text(
-                              isActive ? "Habilitada" : "Inhabilitada",
+                            child: const Text(
+                              "Habilitada",
                               style: TextStyle(
-                                color: isActive ? Colors.greenAccent : Colors.redAccent,
+                                color: Colors.white, 
                                 fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
                             ),
                           ),
+                          
                           onTap: () {
                             Navigator.push(
                               context,

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'package:flutter/services.dart';
+// ⚠️ IMPORTACIÓN CLAVE: Asegura la ruta correcta a tu tema
+import 'home/theme/dark_theme.dart'; 
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final ApiService _apiService = ApiService();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   final List<String> _documentTypes = ['CC', 'TI', 'CE', 'PA', 'RC'];
   String? _selectedDocumentType = 'CC';
@@ -32,19 +36,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  // 1. 🟢 MODIFICACIÓN: Uso de GeoFloraTheme para los colores del Snackbar
   void _showSnackbar(String message, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(
+          message,
+          // Texto negro para buen contraste sobre el color de acento
+          style: const TextStyle(color: Colors.black), 
+        ), 
         backgroundColor: isError
-            ? Theme.of(context).colorScheme.error
-            : Theme.of(context).colorScheme.primary,
+            // Color de error fijo para consistencia si el tema no lo define
+            ? Colors.redAccent.shade400
+            // Usamos el color de acento para éxito
+            : GeoFloraTheme.accent, 
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   Future<void> _handleRegister() async {
+    FocusScope.of(context).unfocus(); 
+    
     if (!_formKey.currentState!.validate() || _isLoading) return;
 
     setState(() {
@@ -65,6 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (result['success'] == true) {
       _showSnackbar("Registro exitoso. Inicia sesión.", isError: false);
       if (mounted) {
+        await Future.delayed(const Duration(milliseconds: 1500)); 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
@@ -78,17 +92,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
   }
 
-  // 🎨 Formulario adaptado a tema oscuro elegante
+  // 2. 🟢 MODIFICACIÓN: Uso de constantes de GeoFloraTheme
   Widget _buildRegisterForm(double maxWidth) {
     final double formWidth = maxWidth > 600 ? 500 : maxWidth * 0.9;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Center(
       child: Container(
         padding: const EdgeInsets.all(28.0),
         width: formWidth,
         decoration: BoxDecoration(
-          color: colorScheme.surface.withOpacity(0.95),
+          // Usamos GeoFloraTheme.card para el fondo del formulario
+          color: GeoFloraTheme.card.withOpacity(0.98), 
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -110,7 +124,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(
                   fontSize: maxWidth > 600 ? 32 : 28,
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
+                  // Usamos GeoFloraTheme.accent para el título
+                  color: GeoFloraTheme.accent, 
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -122,6 +137,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Cédula',
                 icon: Icons.credit_card,
                 keyboard: TextInputType.number,
+                formatterType: 'number',
+                maxLength: 10,
               ),
               const SizedBox(height: 15),
 
@@ -129,6 +146,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _nombreController,
                 label: 'Nombre Completo',
                 icon: Icons.person,
+                keyboard: TextInputType.text,
+                formatterType: 'text',
               ),
               const SizedBox(height: 15),
 
@@ -146,10 +165,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: colorScheme.primary),
+                    // Usamos GeoFloraTheme.accent para el borde enfocado
+                    borderSide: const BorderSide(color: GeoFloraTheme.accent), 
                   ),
                 ),
-                dropdownColor: colorScheme.surface,
+                // Usamos GeoFloraTheme.card para el fondo del dropdown
+                dropdownColor: GeoFloraTheme.card, 
                 items: _documentTypes.map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -169,6 +190,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label: 'Teléfono',
                 icon: Icons.phone,
                 keyboard: TextInputType.phone,
+                formatterType: 'phone',
+                maxLength: 10,
               ),
               const SizedBox(height: 15),
 
@@ -184,14 +207,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 controller: _passwordController,
                 label: 'Contraseña',
                 icon: Icons.lock,
-                obscure: true,
+                obscure: !_isPasswordVisible,
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.white70,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                ),
               ),
-              // --- Fin Campos ---
-
               const SizedBox(height: 30),
 
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        // Usamos GeoFloraTheme.accent para el indicador
+                        valueColor: const AlwaysStoppedAnimation<Color>(GeoFloraTheme.accent),
+                      ),
+                    )
                   : ElevatedButton(
                       onPressed: _handleRegister,
                       style: ElevatedButton.styleFrom(
@@ -199,8 +236,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
+                        // Usamos GeoFloraTheme.accent para el botón principal
+                        backgroundColor: GeoFloraTheme.accent, 
+                        // Texto oscuro para alto contraste
+                        foregroundColor: Colors.black, 
                         textStyle: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -217,7 +256,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   );
                 },
                 style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.secondary,
+                  // Usamos GeoFloraTheme.accent para el texto del enlace
+                  foregroundColor: GeoFloraTheme.accent, 
                   textStyle: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 child: const Text("¿Ya tienes cuenta? Inicia sesión"),
@@ -229,49 +269,106 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // 🎨 Campo reutilizable con estilo oscuro
+  // 3. 🟢 MODIFICACIÓN: Uso de GeoFloraTheme.accent
   Widget _buildField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     bool obscure = false,
     TextInputType? keyboard,
+    String? formatterType,
+    int? maxLength,
+    Widget? suffixIcon,
   }) {
+    List<TextInputFormatter> formatters = [];
+    int? limit;
+
+    if (formatterType == 'number' || formatterType == 'phone') {
+      formatters.add(FilteringTextInputFormatter.digitsOnly);
+      limit = maxLength;
+    } else if (formatterType == 'text') {
+      formatters.add(FilteringTextInputFormatter.allow(RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]')));
+      limit = maxLength;
+    }
+    
+    if (maxLength != null && formatterType != 'number' && formatterType != 'phone') {
+        limit = maxLength;
+    }
+    
+    if (limit != null) {
+        formatters.add(LengthLimitingTextInputFormatter(limit));
+    }
+
     return TextFormField(
       controller: controller,
       obscureText: obscure,
       keyboardType: keyboard,
       style: const TextStyle(color: Colors.white),
+      inputFormatters: formatters,
+      maxLength: null, 
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         prefixIcon: Icon(icon, color: Colors.white70),
+        suffixIcon: suffixIcon,
         filled: true,
         fillColor: Colors.white10,
+        counterText: "",
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.white24),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+          // Usamos GeoFloraTheme.accent para el borde enfocado
+          borderSide: const BorderSide(color: GeoFloraTheme.accent), 
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 2.0),
         ),
       ),
-      validator: (value) => value!.isEmpty ? 'Campo obligatorio' : null,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Campo obligatorio';
+        }
+        
+        if (keyboard == TextInputType.emailAddress) {
+          const pattern = r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$';
+          final regex = RegExp(pattern);
+          if (!regex.hasMatch(value.trim())) {
+            return 'Ingresa un correo electrónico válido';
+          }
+        }
+
+        if (obscure && value.length < 6) {
+          return 'La contraseña debe tener al menos 6 caracteres';
+        }
+        
+        if ((formatterType == 'number' || formatterType == 'phone') && value.length < 7) {
+            return 'El campo debe tener al menos 7 dígitos';
+        }
+
+        return null;
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      // 4. 🟢 MODIFICACIÓN: Usamos GeoFloraTheme.background
+      backgroundColor: GeoFloraTheme.background, 
       body: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 16),
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              constraints: BoxConstraints(minHeight: constraints.maxHeight - 50), 
               child: _buildRegisterForm(constraints.maxWidth),
             ),
           );

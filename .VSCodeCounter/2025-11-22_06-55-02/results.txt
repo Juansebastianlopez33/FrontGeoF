@@ -1,0 +1,174 @@
+Date : 2025-11-22 06:55:02
+Directory : c:\PROYECTOS\FRONTGEOF\FrontGeoF
+Total : 87 files,  10734 codes, 1271 comments, 1462 blanks, all 13467 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Dart       |         42 |      8,940 |      1,054 |      1,147 |     11,141 |
+| C++        |         12 |        532 |        117 |        169 |        818 |
+| XML        |         10 |        472 |         42 |         14 |        528 |
+| CMake      |          6 |        425 |          0 |         80 |        505 |
+| JSON       |          4 |        248 |          0 |          4 |        252 |
+| Swift      |          5 |         49 |          4 |         17 |         70 |
+| YAML       |          3 |         28 |         39 |         15 |         82 |
+| HTML       |          1 |         19 |         15 |          5 |         39 |
+| Markdown   |          2 |         13 |          0 |          9 |         22 |
+| Properties |          2 |          8 |          0 |          2 |         10 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                           | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                              |         87 |     10,734 |      1,271 |      1,462 |     13,467 |
+| . (Files)                                                                                      |          4 |         38 |         39 |         22 |         99 |
+| android                                                                                        |          9 |         76 |         40 |         13 |        129 |
+| android (Files)                                                                                |          1 |          3 |          0 |          1 |          4 |
+| android\app                                                                                    |          7 |         68 |         40 |         11 |        119 |
+| android\app\src                                                                                |          7 |         68 |         40 |         11 |        119 |
+| android\app\src\debug                                                                          |          1 |          3 |          4 |          1 |          8 |
+| android\app\src\main                                                                           |          5 |         62 |         32 |          9 |        103 |
+| android\app\src\main (Files)                                                                   |          1 |         36 |          0 |          3 |         39 |
+| android\app\src\main\res                                                                       |          4 |         26 |         32 |          6 |         64 |
+| android\app\src\main\res\drawable                                                              |          1 |          4 |          7 |          2 |         13 |
+| android\app\src\main\res\drawable-v21                                                          |          1 |          4 |          7 |          2 |         13 |
+| android\app\src\main\res\values                                                                |          1 |          9 |          9 |          1 |         19 |
+| android\app\src\main\res\values-night                                                          |          1 |          9 |          9 |          1 |         19 |
+| android\app\src\profile                                                                        |          1 |          3 |          4 |          1 |          8 |
+| android\gradle                                                                                 |          1 |          5 |          0 |          1 |          6 |
+| android\gradle\wrapper                                                                         |          1 |          5 |          0 |          1 |          6 |
+| ios                                                                                            |          8 |        229 |          4 |         13 |        246 |
+| ios\Runner                                                                                     |          7 |        222 |          2 |          9 |        233 |
+| ios\Runner (Files)                                                                             |          2 |         13 |          0 |          3 |         16 |
+| ios\RunnerTests                                                                                |          1 |          7 |          2 |          4 |         13 |
+| ios\Runner\Assets.xcassets                                                                     |          3 |        148 |          0 |          4 |        152 |
+| ios\Runner\Assets.xcassets\AppIcon.appiconset                                                  |          1 |        122 |          0 |          1 |        123 |
+| ios\Runner\Assets.xcassets\LaunchImage.imageset                                                |          2 |         26 |          0 |          3 |         29 |
+| ios\Runner\Base.lproj                                                                          |          2 |         61 |          2 |          2 |         65 |
+| lib                                                                                            |         41 |      8,926 |      1,044 |      1,140 |     11,110 |
+| lib (Files)                                                                                    |          1 |        101 |          2 |          9 |        112 |
+| lib\models                                                                                     |          2 |        113 |         20 |         14 |        147 |
+| lib\screens                                                                                    |         34 |      7,774 |        862 |        950 |      9,586 |
+| lib\screens (Files)                                                                            |          9 |      1,924 |         86 |        205 |      2,215 |
+| lib\screens\areas                                                                              |          6 |      1,925 |        318 |        273 |      2,516 |
+| lib\screens\bloques                                                                            |          5 |      1,392 |        204 |        206 |      1,802 |
+| lib\screens\fincas                                                                             |          8 |      1,994 |        192 |        219 |      2,405 |
+| lib\screens\home                                                                               |          6 |        539 |         62 |         47 |        648 |
+| lib\screens\home (Files)                                                                       |          2 |        369 |         38 |         29 |        436 |
+| lib\screens\home\components                                                                    |          3 |        139 |         23 |         15 |        177 |
+| lib\screens\home\theme                                                                         |          1 |         31 |          1 |          3 |         35 |
+| lib\services                                                                                   |          4 |        938 |        160 |        167 |      1,265 |
+| linux                                                                                          |          6 |        307 |         32 |         77 |        416 |
+| linux (Files)                                                                                  |          1 |        104 |          0 |         25 |        129 |
+| linux\flutter                                                                                  |          1 |         79 |          0 |         10 |         89 |
+| linux\runner                                                                                   |          4 |        124 |         32 |         42 |        198 |
+| macos                                                                                          |          5 |        441 |          2 |         13 |        456 |
+| macos\Runner                                                                                   |          4 |        434 |          0 |          9 |        443 |
+| macos\Runner (Files)                                                                           |          2 |         23 |          0 |          7 |         30 |
+| macos\RunnerTests                                                                              |          1 |          7 |          2 |          4 |         13 |
+| macos\Runner\Assets.xcassets                                                                   |          1 |         68 |          0 |          1 |         69 |
+| macos\Runner\Assets.xcassets\AppIcon.appiconset                                                |          1 |         68 |          0 |          1 |         69 |
+| macos\Runner\Base.lproj                                                                        |          1 |        343 |          0 |          1 |        344 |
+| test                                                                                           |          1 |         14 |         10 |          7 |         31 |
+| web                                                                                            |          2 |         54 |         15 |          6 |         75 |
+| windows                                                                                        |         11 |        649 |         85 |        171 |        905 |
+| windows (Files)                                                                                |          1 |         89 |          0 |         20 |        109 |
+| windows\flutter                                                                                |          1 |         98 |          0 |         12 |        110 |
+| windows\runner                                                                                 |          9 |        462 |         85 |        139 |        686 |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                       | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\README.md                                                     | Markdown   |         10 |          0 |          7 |         17 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\analysis_options.yaml                                         | YAML       |          3 |         22 |          4 |         29 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\debug\AndroidManifest.xml                     | XML        |          3 |          4 |          1 |          8 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\main\AndroidManifest.xml                      | XML        |         36 |          0 |          3 |         39 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\main\res\drawable-v21\launch_background.xml   | XML        |          4 |          7 |          2 |         13 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\main\res\drawable\launch_background.xml       | XML        |          4 |          7 |          2 |         13 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\main\res\values-night\styles.xml              | XML        |          9 |          9 |          1 |         19 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\main\res\values\styles.xml                    | XML        |          9 |          9 |          1 |         19 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\app\src\profile\AndroidManifest.xml                   | XML        |          3 |          4 |          1 |          8 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\gradle.properties                                     | Properties |          3 |          0 |          1 |          4 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\android\gradle\wrapper\gradle-wrapper.properties              | Properties |          5 |          0 |          1 |          6 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\devtools_options.yaml                                         | YAML       |          3 |          0 |          1 |          4 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\RunnerTests\RunnerTests.swift                             | Swift      |          7 |          2 |          4 |         13 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\AppDelegate.swift                                  | Swift      |         12 |          0 |          2 |         14 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json   | JSON       |        122 |          0 |          1 |        123 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Assets.xcassets\LaunchImage.imageset\Contents.json | JSON       |         23 |          0 |          1 |         24 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Assets.xcassets\LaunchImage.imageset\README.md     | Markdown   |          3 |          0 |          2 |          5 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Base.lproj\LaunchScreen.storyboard                 | XML        |         36 |          1 |          1 |         38 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Base.lproj\Main.storyboard                         | XML        |         25 |          1 |          1 |         27 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\ios\Runner\Runner-Bridging-Header.h                           | C++        |          1 |          0 |          1 |          2 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\main.dart                                                 | Dart       |        101 |          2 |          9 |        112 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\models\finca_model.dart                                   | Dart       |         32 |          7 |          7 |         46 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\models\user_model.dart                                    | Dart       |         81 |         13 |          7 |        101 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\admin_dashboard_screen.dart                       | Dart       |        121 |          0 |         10 |        131 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\admin_user_detail_screen.dart                     | Dart       |        224 |          3 |         24 |        251 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\admin_user_form_screen.dart                       | Dart       |        195 |          3 |         28 |        226 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_create_screen.dart                     | Dart       |        361 |         95 |         52 |        508 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_detail_screen.dart                     | Dart       |        304 |         47 |         42 |        393 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_edit_screen.dart                       | Dart       |        563 |         60 |         74 |        697 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_finca_selection_screen.dart            | Dart       |        211 |         22 |         27 |        260 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_list_finca_edit_screen.dart            | Dart       |        204 |         42 |         33 |        279 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\areas\area_list_screen.dart                       | Dart       |        282 |         52 |         45 |        379 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\bloques\bloque_area_selection_screen.dart         | Dart       |        352 |         36 |         50 |        438 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\bloques\bloque_create_screen.dart                 | Dart       |        289 |         29 |         34 |        352 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\bloques\bloque_detail_screen.dart                 | Dart       |        337 |         63 |         54 |        454 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\bloques\bloque_edit_screen.dart                   | Dart       |        199 |         26 |         35 |        260 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\bloques\bloque_list_screen.dart                   | Dart       |        215 |         50 |         33 |        298 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\entity_form_screen.dart                           | Dart       |        184 |         33 |         29 |        246 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\entity_list_screen.dart                           | Dart       |        147 |         16 |         15 |        178 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\farm_structure_management_screen.dart             | Dart       |        162 |         20 |         21 |        203 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\FincaEditScreen.dart                       | Dart       |        270 |          5 |         27 |        302 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_create_screen.dart                   | Dart       |        398 |         53 |         46 |        497 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_delete_screen.dart                   | Dart       |        175 |          0 |         15 |        190 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_detail_screen.dart                   | Dart       |        315 |         38 |         38 |        391 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_edit_screen.dart                     | Dart       |        256 |         20 |         28 |        304 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_list_edit_screen.dart                | Dart       |        300 |         51 |         31 |        382 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_list_screen.dart                     | Dart       |        180 |         25 |         25 |        230 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\fincas\finca_register_screen.dart                 | Dart       |        100 |          0 |          9 |        109 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\components\dark_theme.dart                   | Dart       |          8 |          0 |          2 |         10 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\components\feature_card.dart                 | Dart       |         62 |          9 |          7 |         78 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\components\role_features.dart                | Dart       |         69 |         14 |          6 |         89 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\home_screen.dart                             | Dart       |        119 |          0 |          6 |        125 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\records_menu_screen.dart                     | Dart       |        250 |         38 |         23 |        311 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\home\theme\dark_theme.dart                        | Dart       |         31 |          1 |          3 |         35 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\login_screen.dart                                 | Dart       |        320 |          4 |         31 |        355 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\profile_screen.dart                               | Dart       |        305 |          0 |         20 |        325 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\screens\register_screen.dart                              | Dart       |        266 |          7 |         27 |        300 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\services\api_service.dart                                 | Dart       |        335 |         30 |         55 |        420 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\services\area_service.dart                                | Dart       |        181 |         46 |         36 |        263 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\services\bloques_service.dart                             | Dart       |        215 |         46 |         41 |        302 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\lib\services\finca_service.dart                               | Dart       |        207 |         38 |         35 |        280 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\CMakeLists.txt                                          | CMake      |        104 |          0 |         25 |        129 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\flutter\CMakeLists.txt                                  | CMake      |         79 |          0 |         10 |         89 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\runner\CMakeLists.txt                                   | CMake      |         21 |          0 |          6 |         27 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\runner\main.cc                                          | C++        |          5 |          0 |          2 |          7 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\runner\my_application.cc                                | C++        |         91 |         25 |         29 |        145 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\linux\runner\my_application.h                                 | C++        |          7 |          7 |          5 |         19 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\macos\RunnerTests\RunnerTests.swift                           | Swift      |          7 |          2 |          4 |         13 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\macos\Runner\AppDelegate.swift                                | Swift      |         11 |          0 |          3 |         14 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\macos\Runner\Assets.xcassets\AppIcon.appiconset\Contents.json | JSON       |         68 |          0 |          1 |         69 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\macos\Runner\Base.lproj\MainMenu.xib                          | XML        |        343 |          0 |          1 |        344 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\macos\Runner\MainFlutterWindow.swift                          | Swift      |         12 |          0 |          4 |         16 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\pubspec.yaml                                                  | YAML       |         22 |         17 |         10 |         49 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\test\widget_test.dart                                         | Dart       |         14 |         10 |          7 |         31 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\web\index.html                                                | HTML       |         19 |         15 |          5 |         39 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\web\manifest.json                                             | JSON       |         35 |          0 |          1 |         36 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\CMakeLists.txt                                        | CMake      |         89 |          0 |         20 |        109 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\flutter\CMakeLists.txt                                | CMake      |         98 |          0 |         12 |        110 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\CMakeLists.txt                                 | CMake      |         34 |          0 |          7 |         41 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\flutter_window.cpp                             | C++        |         49 |          7 |         16 |         72 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\flutter_window.h                               | C++        |         20 |          5 |          9 |         34 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\main.cpp                                       | C++        |         30 |          4 |         10 |         44 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\resource.h                                     | C++        |          9 |          6 |          2 |         17 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\utils.cpp                                      | C++        |         54 |          2 |         10 |         66 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\utils.h                                        | C++        |          8 |          6 |          6 |         20 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\win32_window.cpp                               | C++        |        210 |         24 |         55 |        289 |
+| c:\PROYECTOS\FRONTGEOF\FrontGeoF\windows\runner\win32_window.h                                 | C++        |         48 |         31 |         24 |        103 |
+| Total                                                                                          |            |     10,734 |      1,271 |      1,462 |     13,467 |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

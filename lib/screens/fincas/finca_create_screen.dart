@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../services/finca_service.dart';
 import '../home/theme/dark_theme.dart';
@@ -21,6 +22,11 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
   final TextEditingController _abreviaturaController = TextEditingController();
   final TextEditingController _nombreController = TextEditingController();
   final TextEditingController _direccionController = TextEditingController();
+  
+  // *** NUEVOS CONTROLADORES Y ESTADOS PARA BÚSQUEDA EXPLÍCITA ***
+  final TextEditingController _searchController = TextEditingController(); // Controlador para la barra de búsqueda
+  String _lastSearchQuery = ''; // Almacena la última query exitosa
+  // *************************************************************
 
   File? _imagenSeleccionada;
   bool _isLoading = false;
@@ -30,45 +36,137 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
   // ==========================================================
   List<dynamic> _agronomos = [];
   String? _agronomoSeleccionado;
-  String _searchQuery = '';
+  // String _searchQuery = ''; // Eliminada, reemplazada por _searchController
   bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     _cargarAgronomos();
+    
+    // Listeners para mayúsculas
+    _abreviaturaController.addListener(_updateAbreviaturaUpperCase);
+    _nombreController.addListener(_updateNombreUpperCase);
+    _direccionController.addListener(_updateDireccionUpperCase);
+  }
+
+  void _updateAbreviaturaUpperCase() {
+    final text = _abreviaturaController.text;
+    if (text.isNotEmpty && text != text.toUpperCase()) {
+      _abreviaturaController.value = _abreviaturaController.value.copyWith(
+        text: text.toUpperCase(),
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    }
+  }
+  void _updateNombreUpperCase() {
+    final text = _nombreController.text;
+    if (text.isNotEmpty && text != text.toUpperCase()) {
+      _nombreController.value = _nombreController.value.copyWith(
+        text: text.toUpperCase(),
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    }
+  }
+  void _updateDireccionUpperCase() {
+    final text = _direccionController.text;
+    if (text.isNotEmpty && text != text.toUpperCase()) {
+      _direccionController.value = _direccionController.value.copyWith(
+        text: text.toUpperCase(),
+        selection: TextSelection.collapsed(offset: text.length),
+      );
+    }
+  }
+
+
+  @override
+  void dispose() {
+    // Eliminar Listeners
+    _abreviaturaController.removeListener(_updateAbreviaturaUpperCase);
+    _nombreController.removeListener(_updateNombreUpperCase);
+    _direccionController.removeListener(_updateDireccionUpperCase);
+    
+    // Liberar controladores
+    _codigoFincaController.dispose();
+    _abreviaturaController.dispose();
+    _nombreController.dispose();
+    _direccionController.dispose();
+    _searchController.dispose(); // Limpiamos el nuevo controlador de búsqueda
+    super.dispose();
   }
 
   Future<void> _cargarAgronomos() async {
-    setState(() => _isSearching = true);
+    // Para el initial load, no es necesario mostrar el spinner de búsqueda
     final agronomos = await _fincaService.getAllAgronomos();
     setState(() {
       _agronomos = agronomos;
-      _isSearching = false;
+      // IMPORTANTE: Si la lista cambia, es buena práctica resetear la selección para evitar el assertion
+      if (_agronomoSeleccionado != null && 
+          !_agronomos.any((a) => a['cedula'] == _agronomoSeleccionado)) {
+          _agronomoSeleccionado = null;
+      }
     });
   }
 
-  Future<void> _buscarAgronomo(String query) async {
+  // ==========================================================
+  // 🔍 BÚSQUEDA EXPLÍCITA DE AGRÓNOMOS (FUNCIÓN MODIFICADA)
+  // ==========================================================
+  Future<void> _searchAgronomosExplicitly() async {
+    final query = _searchController.text.trim();
+
+    // 1. Validar Query No Vacía
     if (query.isEmpty) {
-      await _cargarAgronomos();
+      _mostrarSnackBar("Debe ingresar un nombre o cédula para buscar.", isError: true);
+      return;
+    }
+    
+    // 2. Validar Query No Repetida
+    if (query == _lastSearchQuery) {
+      _mostrarSnackBar("Ya buscó este valor. Modifique la búsqueda para obtener nuevos resultados.", isError: true);
       return;
     }
 
-    setState(() => _isSearching = true);
+    setState(() {
+        _agronomoSeleccionado = null; 
+        _isSearching = true; // Activa el indicador de carga
+        _agronomos = []; // Limpiamos la lista anterior
+    });
+
     final result = await _fincaService.searchAgronomo(nombre: query, cedula: query);
+    
+    if (!mounted) return;
+
     setState(() {
       if (result['success']) {
         final data = result['data'];
-        // Si es un solo objeto, lo envolvemos en lista
+        List<dynamic> resultadosBusqueda = [];
+
         if (data is Map && data.containsKey('cedula')) {
-          _agronomos = [data];
+          resultadosBusqueda = [data];
         } else if (data is Map && data.containsKey('resultados')) {
-          _agronomos = List.from(data['resultados']);
+          // Lógica para filtrar duplicados por cédula
+          final Map<String, dynamic> uniqueAgronomos = {};
+          for (var agronomo in List.from(data['resultados'])) {
+            // Usamos toString() por consistencia aunque aquí el tipo parece ser String
+            uniqueAgronomos[agronomo['cedula']?.toString() ?? 'N/A'] = agronomo;
+          }
+          resultadosBusqueda = uniqueAgronomos.values.toList();
         } else {
-          _agronomos = [];
+          resultadosBusqueda = [];
         }
+
+        _agronomos = resultadosBusqueda;
+        _lastSearchQuery = query; // Guardamos la query exitosa
+
+        if (_agronomos.isEmpty) {
+          _mostrarSnackBar("No se encontraron Agrónomos para '$query'.", isError: false);
+        } else {
+          _mostrarSnackBar("Se encontraron ${_agronomos.length} Agrónomos. Seleccione o confirme.", isError: false);
+        }
+
       } else {
         _agronomos = [];
+        _mostrarSnackBar(result['message'] ?? "Error al buscar agrónomos.", isError: true);
       }
       _isSearching = false;
     });
@@ -90,6 +188,11 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
   // 💾 Crear Finca
   // ==========================================================
   Future<void> _crearFinca() async {
+    // Aseguramos que el texto de los controladores ya esté en mayúsculas aquí por si acaso
+    _abreviaturaController.text = _abreviaturaController.text.toUpperCase();
+    _nombreController.text = _nombreController.text.toUpperCase();
+    _direccionController.text = _direccionController.text.toUpperCase();
+
     if (!_formKey.currentState!.validate()) return;
     if (_agronomoSeleccionado == null || _agronomoSeleccionado!.isEmpty) {
       _mostrarSnackBar("Debe seleccionar un agrónomo.", isError: true);
@@ -99,7 +202,7 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
     setState(() => _isLoading = true);
 
     final fincaData = {
-      'codigoFinca': _codigoFincaController.text,
+      'codigoFinca': _codigoFincaController.text, 
       'abreviaturaFinca': _abreviaturaController.text,
       'nombreFinca': _nombreController.text,
       'direccionFinca': _direccionController.text,
@@ -135,6 +238,7 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
     );
   }
 
+
   // ==========================================================
   // 🧱 Build
   // ==========================================================
@@ -153,7 +257,7 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildTextField(_codigoFincaController, "Código Finca", true),
+              _buildCodigoTextField(_codigoFincaController, "Código Finca", true),
               const SizedBox(height: 15),
               _buildTextField(_abreviaturaController, "Abreviatura", true),
               const SizedBox(height: 15),
@@ -163,46 +267,14 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
               const SizedBox(height: 25),
 
               // ======================================================
-              // 👨‍🌾 Dropdown con búsqueda de agrónomos
+              // 👨‍🌾 Búsqueda y Dropdown Agrónomo (REEMPLAZO)
               // ======================================================
-              Text(
+              const Text(
                 "Seleccionar Agrónomo Encargado",
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 8),
-              TextField(
-                style: const TextStyle(color: Colors.white),
-                decoration: _inputDecoration("Buscar por nombre o cédula"),
-                onChanged: (query) {
-                  _searchQuery = query;
-                  _buscarAgronomo(query);
-                },
-              ),
-              const SizedBox(height: 10),
-
-              _isSearching
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.greenAccent),
-                    )
-                  : DropdownButtonFormField<String>(
-                      value: _agronomoSeleccionado,
-                      dropdownColor: Colors.black87,
-                      items: _agronomos.map<DropdownMenuItem<String>>((a) {
-                        final nombre = a['nombre'] ?? 'Sin nombre';
-                        final cedula = a['cedula'] ?? 'N/A';
-                        return DropdownMenuItem<String>(
-                          value: cedula,
-                          child: Text(
-                            "$nombre ($cedula)",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) => setState(() => _agronomoSeleccionado = value),
-                      decoration: _inputDecoration("Agrónomo"),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? 'Seleccione un agrónomo' : null,
-                    ),
+              _buildAgronomoSearchAndDropdown(), // <-- NUEVO WIDGET
               const SizedBox(height: 30),
 
               // ======================================================
@@ -224,22 +296,22 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
                   ),
                   child: _imagenSeleccionada != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: kIsWeb
-                              ? Image.network(_imagenSeleccionada!.path, fit: BoxFit.cover)
-                              : Image.file(_imagenSeleccionada!, fit: BoxFit.cover),
-                        )
+                            borderRadius: BorderRadius.circular(10),
+                            child: kIsWeb
+                                ? Image.network(_imagenSeleccionada!.path, fit: BoxFit.cover)
+                                : Image.file(_imagenSeleccionada!, fit: BoxFit.cover),
+                          )
                       : const Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.camera_alt, size: 40, color: Colors.white70),
-                              SizedBox(height: 8),
-                              Text("Seleccionar Imagen de la Finca",
-                                  style: TextStyle(color: Colors.white70)),
-                            ],
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.camera_alt, size: 40, color: Colors.white70),
+                                SizedBox(height: 8),
+                                Text("Seleccionar Imagen de la Finca",
+                                    style: TextStyle(color: Colors.white70)),
+                              ],
+                            ),
                           ),
-                        ),
                 ),
               ),
               const SizedBox(height: 30),
@@ -249,29 +321,124 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
               // ======================================================
               _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: Colors.greenAccent))
-                  : ElevatedButton.icon(
-                      onPressed: _crearFinca,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        child: CircularProgressIndicator(color: Colors.greenAccent))
+                    : ElevatedButton.icon(
+                        onPressed: _crearFinca,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.save, color: Colors.white),
+                        label: const Text(
+                          "Guardar Finca",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
-                      icon: const Icon(Icons.save, color: Colors.white),
-                      label: const Text(
-                        "Guardar Finca",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  // ==========================================================
+  // 🧱 Búsqueda y Dropdown para Agrónomo (NUEVO WIDGET)
+  // ==========================================================
+  Widget _buildAgronomoSearchAndDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Campo de Búsqueda con Botón
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _searchController,
+                decoration: _inputDecoration(
+                  "Buscar por Nombre o Cédula",
+                ),
+                style: const TextStyle(color: Colors.white),
+                // Aquí quitamos el onChanged: _buscarAgronomo
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Botón que ejecuta la búsqueda
+            _isSearching
+                ? Container(
+                    height: 58, 
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+                    child: const SizedBox(
+                      width: 30,
+                      height: 30,
+                      child: CircularProgressIndicator(color: Colors.greenAccent, strokeWidth: 2),
+                    ),
+                  )
+                : ElevatedButton(
+                    onPressed: _searchAgronomosExplicitly,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Icon(Icons.search),
+                  ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        // 2. Dropdown de Selección
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: Colors.black26,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.white24, width: 1),
+          ),
+          child: DropdownButtonFormField<String>(
+            value: _agronomoSeleccionado,
+            isExpanded: true,
+            // Ajuste para el padding vertical dentro del campo de selección
+            decoration: InputDecoration(
+              hintText: _agronomos.isEmpty 
+                  ? "Realice la búsqueda para seleccionar un agrónomo"
+                  : "Seleccionar Agrónomo (${_agronomos.length} resultados)",
+              hintStyle: const TextStyle(color: Colors.white38),
+              contentPadding: const EdgeInsets.fromLTRB(0, 15, 0, 15),
+              border: InputBorder.none,
+            ),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.greenAccent),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            dropdownColor: Colors.black87,
+            items: _agronomos.map<DropdownMenuItem<String>>((a) {
+              final nombre = a['nombre'] ?? 'Sin nombre';
+              // Usamos toString() por seguridad
+              final cedula = a['cedula']?.toString() ?? 'N/A'; 
+              return DropdownMenuItem<String>(
+                value: cedula,
+                child: Text(
+                  "$nombre ($cedula)",
+                  style: const TextStyle(color: Colors.white),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              );
+            }).toList(),
+            onChanged: (value) => setState(() => _agronomoSeleccionado = value),
+            validator: (value) =>
+                value == null || value.isEmpty ? 'Seleccione un agrónomo' : null,
+          ),
+        ),
+      ],
     );
   }
 
@@ -283,6 +450,25 @@ class _FincaCreateScreenState extends State<FincaCreateScreen> {
       controller: controller,
       decoration: _inputDecoration(label),
       style: const TextStyle(color: Colors.white),
+      validator: (value) {
+        if (required && (value == null || value.isEmpty)) {
+          return 'Campo obligatorio';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildCodigoTextField(TextEditingController controller, String label, bool required) {
+    return TextFormField(
+      controller: controller,
+      decoration: _inputDecoration(label),
+      style: const TextStyle(color: Colors.white),
+      keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(4),
+      ],
       validator: (value) {
         if (required && (value == null || value.isEmpty)) {
           return 'Campo obligatorio';
